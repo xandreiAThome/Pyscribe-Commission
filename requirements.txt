@@ -1,0 +1,7 @@
+opencv-python
+google-genai
+ultralytics
+pillow
+numpy
+python-dotenv
+huggingface_hub
