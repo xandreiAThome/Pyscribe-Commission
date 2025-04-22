@@ -142,7 +142,10 @@ class TextDetectionApp:
                     'Transcribe the text in this image, do not reply with unnecessary words, only the transcription'
                         ]
                     )
-                    text = response.text.strip()
+                    if response.text is None:
+                        text = "No text detected"
+                    else:
+                        text = response.text.strip()
                     print("🧠 Transcribed Text:\n", text)
                 except Exception as e:
                     text = "[Error]"
