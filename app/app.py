@@ -17,6 +17,7 @@ import torch
 import glob as glob
 import matplotlib.pyplot as plt
 import warnings
+from thefuzz import fuzz
 
 # Load the environment variables from .env file
 load_dotenv()
@@ -53,6 +54,7 @@ class TextDetectionApp:
         # video capture
         self.cap = cv2.VideoCapture(0)
         self.annotated_frame = None
+        self.captured_frame = None
         self.showing_annotated = False
 
         # UI
@@ -90,13 +92,12 @@ class TextDetectionApp:
         # show annotated frame
         if self.showing_annotated and self.annotated_frame is not None:
             frame_to_display = self.annotated_frame
+        elif self.is_processing and self.captured_frame is not None:
+            frame_to_display = self.captured_frame
+            cv2.putText(frame_to_display, "Processing...", (20, 40),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 165, 255), 2, cv2.LINE_AA)
         else:
             frame_to_display = frame
-
-            # If processing, overlay "Processing..." text
-            if self.is_processing:
-                cv2.putText(frame_to_display, "Processing...", (20, 40),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 165, 255), 2, cv2.LINE_AA)
 
         # convert to rgb and display to tkinter
         cv_img = cv2.cvtColor(frame_to_display, cv2.COLOR_BGR2RGB)
@@ -117,6 +118,7 @@ class TextDetectionApp:
         
         print("Transcribing...")
         self.is_processing = True
+        self.captured_frame = frame.copy()
 
         # Convert to PIL for Gemini
         full_pil = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
@@ -153,6 +155,13 @@ class TextDetectionApp:
                     pixel_values = trocr_processor(images=image, return_tensors="pt").pixel_values
                     generated_ids = trocr_model.generate(pixel_values)
                     text = trocr_processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+                    
+                    match = self.fuzzy_match(text)
+                    if match:
+                        print(f"Did you mean {match}")
+                    else:
+                        print("No similar word")
+
                     print("🧠 TrOCR Transcribed Text:\n", text)
                 except Exception as e:
                     text = "[TrOCR Error]"
@@ -160,10 +169,18 @@ class TextDetectionApp:
 
             annotated = frame.copy()
             y0 = 30
+            y = 0
 
             for i, line in enumerate(text.split('\n')):
                 y = y0 + i  * 25
                 cv2.putText(annotated, line, (10, y), cv2.FONT_HERSHEY_SIMPLEX,
+                            0.7, (0,255,0), 2, cv2.LINE_AA)
+                
+            if selected_method == "trocr" and match:
+                cv2.putText(annotated, f"Similar to {match}", (10, y + 25), cv2.FONT_HERSHEY_SIMPLEX,
+                            0.7, (0,255,0), 2, cv2.LINE_AA)
+            elif selected_method == "trocr" and match is None: 
+                 cv2.putText(annotated, "No Similar Word", (10, y + 25), cv2.FONT_HERSHEY_SIMPLEX,
                             0.7, (0,255,0), 2, cv2.LINE_AA)
                 
             self.annotated_frame = annotated
@@ -175,6 +192,7 @@ class TextDetectionApp:
     def back_to_live_feed(self):
         self.showing_annotated = False
         self.annotated_frame = None
+        self.captured_frame = None
         self.transcribe_btn.config(state=tk.NORMAL)
         self.back_btn.pack_forget()
 
@@ -182,6 +200,19 @@ class TextDetectionApp:
         print("Closing app")
         self.cap.release()
         self.root.destroy()
+
+    def fuzzy_match(self, str):
+        match = ""
+        score = 0
+        for word in GROUND_WORDS:
+            score_temp = fuzz.ratio(str, word)
+            if score_temp > score:
+                match = word
+                score = score_temp
+
+        if score > 50:
+            return match
+        return None
                 
 if __name__ == "__main__":
     root = tk.Tk()
