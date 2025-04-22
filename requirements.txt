@@ -5,3 +5,10 @@ pillow
 numpy
 python-dotenv
 huggingface_hub
+transformers
+tqdm
+torch
+torchvision
+matplotlib
+tiktoken
+thefuzz
