@@ -6,9 +6,9 @@ Pyscribe: A Python-TrOCR driven Prototype Device for Scanning Antibiotic Prescri
 
 ## Setup
 
-1. Create a .env file and input the api key
+1. Create a .env file and input the API key
 
-```bash
+```
 GEMINI_KEY=API_KEY_HERE
 ```
 
@@ -20,7 +20,7 @@ pip install -r requirements.txt
 
 3. Change the constant in the app.py
 
-```bash
+```
 TROCR_PATH = "Input trained model path here"
 ```
 
