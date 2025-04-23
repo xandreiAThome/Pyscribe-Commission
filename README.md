@@ -24,6 +24,13 @@ pip install -r requirements.txt
 TROCR_PATH = "Input trained model path here"
 ```
 
+> [!NOTE]  
+> You may need to install the tkinter python library in linux
+
+```bash
+sudo apt-get install python3-tk
+```
+
 ## How to run
 
 ```bash
