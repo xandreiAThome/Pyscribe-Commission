@@ -31,6 +31,7 @@ GROUND_WORDS = ["Amoxicillin", "Amoxicillin 500mg", "Amoxicillin 500m cap", "Cef
                 "Cefalexin 500mg", "Cefalexin 500mg cap", "Cephalexin", "Cephalexin 500mg"]
 # CHANGE TO LOCAL PATH
 TROCR_PATH = "C:\\Users\\ellex\\OneDrive\\Documents\\Code Commisions\\Pyscribe-Commission\\app\\trocr_handwritten\\checkpoint-600"
+# TROCR_PATH = "/home/xandrei/Documents/Pyscribe-Commission/app/trocr_handwritten/checkpoint-600"
 
 # setup
 # MODEL_PATH = hf_hub_download(local_dir=".",
@@ -69,7 +70,7 @@ class TextDetectionApp:
         self.transcribe_btn.pack(side=tk.LEFT, padx=10)
 
         self.back_btn = ttk.Button(button_frame, text="Back to Live Feed", command=self.back_to_live_feed)
-        self.back_btn.pack(side=tk.LEFT, padx=10)
+        self.back_btn.pack(side=tk.RIGHT, padx=10)
 
         # Method Selector
         self.method_var = tk.StringVar(value="gemini")  # Default is Gemini
@@ -95,7 +96,7 @@ class TextDetectionApp:
         elif self.is_processing and self.captured_frame is not None:
             frame_to_display = self.captured_frame
             cv2.putText(frame_to_display, "Processing...", (20, 40),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 165, 255), 2, cv2.LINE_AA)
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 0), 2, cv2.LINE_AA)
         else:
             frame_to_display = frame
 
@@ -146,7 +147,7 @@ class TextDetectionApp:
                         text = "No text detected"
                     else:
                         text = response.text.strip()
-                    print("🧠 Transcribed Text:\n", text)
+                    print("Transcribed Text:\n", text)
                 except Exception as e:
                     text = "[Error]"
                     print(f"❌ Gemini API error: {e}")
@@ -165,9 +166,9 @@ class TextDetectionApp:
                     else:
                         print("No similar word")
 
-                    print("🧠 TrOCR Transcribed Text:\n", text)
+                    print("Transcribed Text:\n", text)
                 except Exception as e:
-                    text = "[TrOCR Error]"
+                    text = "[Error]"
                     print("❌ TrOCR Error:", e)
 
             annotated = frame.copy()

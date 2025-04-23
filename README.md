@@ -4,22 +4,29 @@ Pyscribe: A Python-TrOCR driven Prototype Device for Scanning Antibiotic Prescri
 
 ### This is the code for the Research Project Commission
 
+## Setup
+
+1. Create a .env file and input the api key
+
+```bash
+GEMINI_KEY=API_KEY_HERE
+```
+
+2. And install the dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Change the constant in the app.py
+
+```bash
+TROCR_PATH = "Input trained model path here"
+```
+
 ## How to run
 
 ```bash
-docker build -t my-python-app .
+cd app
+python app.py
 ```
-
-### For Windows
-
-```bash
-docker run --rm -it --device=/dev/video0 -v "%cd%:/app" my-python-app
-```
-
-### For Linux
-
-```bash
-docker run --rm -it --device=/dev/video0 -v "$(pwd):/app" my-python-app
-```
-
-## Put the trocr model folder in the app folder
