@@ -18,6 +18,7 @@ import glob as glob
 import matplotlib.pyplot as plt
 import warnings
 from thefuzz import fuzz
+import jiwer
 
 # Load the environment variables from .env file
 load_dotenv()
@@ -30,7 +31,7 @@ KEY_RETURN = ord('r')      # 'r' to return to live feed
 GROUND_WORDS = ["Amoxicillin", "Amoxicillin 500mg", "Amoxicillin 500m cap", "Cefalexin",
                 "Cefalexin 500mg", "Cefalexin 500mg cap", "Cephalexin", "Cephalexin 500mg"]
 # CHANGE TO LOCAL PATH
-TROCR_PATH = "C:\\Users\\ellex\\OneDrive\\Documents\\Code Commisions\\Pyscribe-Commission\\app\\trocr_handwritten\\checkpoint-600"
+TROCR_PATH = "C:/Users/ellex/OneDrive/Documents/User Documents/Code Commisions/Pyscribe-Commission/app/trocr_handwritten/checkpoint-600"
 # TROCR_PATH = "/home/xandrei/Documents/Pyscribe-Commission/app/trocr_handwritten/checkpoint-600"
 
 # setup
@@ -71,6 +72,12 @@ class TextDetectionApp:
 
         self.back_btn = ttk.Button(button_frame, text="Back to Live Feed", command=self.back_to_live_feed)
         self.back_btn.pack(side=tk.RIGHT, padx=10)
+
+        self.ground_var = tk.StringVar()
+        self.ground_label = tk.Label(button_frame, text="Ground Word")
+        self.ground_input = tk.Entry(button_frame, textvariable=self.ground_var)
+        self.ground_label.pack(side=tk.LEFT)
+        self.ground_input.pack(side=tk.LEFT)
 
         # Method Selector
         self.method_var = tk.StringVar(value="gemini")  # Default is Gemini
@@ -130,6 +137,9 @@ class TextDetectionApp:
         def run_transcription():
             selected_method = self.method_var.get()
             text = ""
+            cer = None
+
+            ground_truth = self.ground_var.get().strip()
 
             if selected_method == "gemini":
                 try:
@@ -171,6 +181,15 @@ class TextDetectionApp:
                     text = "[Error]"
                     print("❌ TrOCR Error:", e)
 
+            # Calculate CER if ground truth is provided and transcription was successful
+            if ground_truth and text != "[Error]" and text != "No text detected":
+                try:
+                    cer = jiwer.cer(ground_truth, text)
+                    print(f"Character Error Rate (CER): {cer:.2f}")
+                except Exception as e:
+                    print(f"❌ Error calculating CER: {e}")
+                    cer = None # Reset CER if calculation fails
+
             annotated = frame.copy()
             y0 = 30
             y = 0
@@ -181,11 +200,19 @@ class TextDetectionApp:
                             0.7, (0,255,0), 2, cv2.LINE_AA)
                 
             if selected_method == "trocr" and match:
-                cv2.putText(annotated, f"Similar to {match}", (10, y + 25), cv2.FONT_HERSHEY_SIMPLEX,
+                y += 25
+                cv2.putText(annotated, f"Similar to {match}", (10, y), cv2.FONT_HERSHEY_SIMPLEX,
                             0.7, (0,255,0), 2, cv2.LINE_AA)
             elif selected_method == "trocr" and match is None: 
-                 cv2.putText(annotated, "No Similar Word", (10, y + 25), cv2.FONT_HERSHEY_SIMPLEX,
+                 y += 25
+                 cv2.putText(annotated, "No Similar Word", (10, y), cv2.FONT_HERSHEY_SIMPLEX,
                             0.7, (0,255,0), 2, cv2.LINE_AA)
+                 
+            # Display CER (if calculated)
+            if cer is not None:
+                y += 25 # Move down for the CER line
+                cv2.putText(annotated, f"CER: {cer:.2f}", (10, y), cv2.FONT_HERSHEY_SIMPLEX,
+                            0.7, (255, 0, 0), 2, cv2.LINE_AA) # Display CER in blue
                 
             self.annotated_frame = annotated
             self.showing_annotated = True
