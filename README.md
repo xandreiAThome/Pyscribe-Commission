@@ -14,7 +14,7 @@ GEMINI_KEY=API_KEY_HERE
 
 2. And install the dependencies
 
-```bash
+```
 pip install -r requirements.txt
 ```
 
